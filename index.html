@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDC Nutrition Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f7f5;color:#1a1a1a;}
+#ddc-app{max-width:680px;margin:0 auto;padding:1.5rem 1rem 3rem;}
+.ddc-hdr{text-align:center;padding:2rem 1.5rem;background:#0F6E56;border-radius:16px;margin-bottom:1.5rem;}
+.ddc-hdr .lo{font-size:11px;letter-spacing:.14em;color:#9FE1CB;text-transform:uppercase;margin-bottom:8px;}
+.ddc-hdr h1{font-size:24px;font-weight:600;color:#fff;margin-bottom:5px;line-height:1.3;}
+.ddc-hdr p{font-size:13px;color:#5DCAA5;}
+.ddc-card{background:#fff;border:1px solid #e8ede8;border-radius:14px;padding:1.25rem;margin-bottom:1rem;}
+.ddc-card h2{font-size:16px;font-weight:600;color:#111;margin-bottom:3px;}
+.ddc-card .sub{font-size:12px;color:#777;margin-bottom:1rem;}
+.ddc-field{margin-bottom:.8rem;}
+.ddc-field label{display:block;font-size:13px;color:#555;margin-bottom:4px;font-weight:500;}
+.ddc-field input,.ddc-field select,.ddc-field textarea{width:100%;font-size:14px;padding:9px 11px;border:1px solid #dde5dd;border-radius:8px;background:#fafcfa;color:#1a1a1a;outline:none;font-family:inherit;}
+.ddc-field textarea{resize:vertical;min-height:58px;line-height:1.5;}
+.ddc-r2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ddc-r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.ddc-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;}
+.ddc-tag{font-size:12px;padding:6px 12px;border-radius:20px;border:1.5px solid #dde5dd;color:#555;background:#fff;cursor:pointer;user-select:none;-webkit-user-select:none;display:inline-block;}
+.ddc-tag.on{background:#0F6E56;color:#fff;border-color:#0F6E56;}
+.ddc-btn{display:block;width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:.75rem;font-family:inherit;text-align:center;}
+.ddc-btn:active{background:#085041;}
+.ddc-btn.out{background:transparent;color:#0F6E56;border:1.5px solid #1D9E75;}
+.ddc-btn.sm{padding:8px 14px;font-size:13px;width:auto;margin-top:0;}
+.ddc-err{font-size:12px;color:#a32d2d;margin-top:5px;min-height:18px;}
+.ddc-hero{text-align:center;padding:1.75rem 1rem;background:#E1F5EE;border-radius:14px;margin-bottom:1rem;}
+.ddc-hero .lbl{font-size:13px;color:#1D9E75;font-weight:500;}
+.ddc-hero .num{font-size:52px;font-weight:700;color:#0F6E56;line-height:1.1;}
+.ddc-hero .unit{font-size:13px;color:#1D9E75;}
+.ddc-hero .badge{display:inline-block;font-size:11px;background:#0F6E56;color:#fff;padding:4px 12px;border-radius:20px;margin-top:10px;}
+.ddc-mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.ddc-mc{background:#fff;border:1px solid #e8ede8;border-radius:10px;padding:12px;text-align:center;}
+.ddc-mc .mv{font-size:21px;font-weight:700;color:#0F6E56;}
+.ddc-mc .ml{font-size:11px;color:#888;margin-top:2px;}
+.ddc-mc .mb{height:3px;border-radius:2px;margin-top:8px;}
+.ddc-spin-wrap{display:flex;align-items:center;gap:10px;padding:1rem;background:#f5f7f5;border-radius:10px;font-size:13px;color:#888;}
+.ddc-spin{width:16px;height:16px;border:2px solid #9FE1CB;border-top-color:#0F6E56;border-radius:50%;animation:ddcspin .8s linear infinite;flex-shrink:0;}
+@keyframes ddcspin{to{transform:rotate(360deg);}}
+.ddc-prose{font-size:14px;line-height:1.75;color:#333;}
+.ddc-prose p{margin-bottom:10px;}
+.ddc-div{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#999;margin:1.5rem 0 .75rem;padding-bottom:5px;border-bottom:1px solid #e8ede8;}
+.ddc-note{font-size:12px;color:#888;background:#fafcfa;border:1px solid #e8ede8;border-radius:8px;padding:8px 11px;margin-bottom:1rem;line-height:1.5;}
+.ddc-toprow{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;}
+.ddc-refbtn{font-size:12px;color:#0F6E56;background:none;border:none;cursor:pointer;font-family:inherit;padding:0;}
+.ddc-dlbanner{background:#E1F5EE;border:1px solid #9FE1CB;border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:1rem;}
+.ddc-dlbanner p{font-size:13px;color:#0F6E56;font-weight:500;margin:0;}
+.ddc-dlbanner span{font-size:12px;color:#1D9E75;display:block;}
+.ddc-dlbtn{padding:8px 16px;background:#0F6E56;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}
+
+/* MEAL PLAN */
+.ddc-mpday{border-left:3px solid #1D9E75;padding-left:12px;margin-bottom:1.5rem;}
+.ddc-mpday h4{font-size:15px;font-weight:600;color:#0F6E56;margin-bottom:8px;}
+.ddc-mpmeal{background:#fafcfa;border:1px solid #e8ede8;border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.ddc-mpmeal .mt{font-size:10px;font-weight:700;color:#0F6E56;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.ddc-mpmeal .mn{font-size:14px;font-weight:600;color:#111;margin-bottom:2px;}
+.ddc-mpmeal .mc{font-size:11px;color:#888;margin-bottom:6px;}
+.ddc-mpmeal .viral{font-size:11px;color:#1D9E75;font-style:italic;margin-bottom:8px;}
+.ddc-ingreds{margin-bottom:8px;}
+.ddc-ingreds .ing-title{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.ddc-ingreds ul{list-style:none;padding:0;}
+.ddc-ingreds ul li{font-size:12px;color:#444;padding:2px 0;padding-left:14px;position:relative;}
+.ddc-ingreds ul li::before{content:'·';position:absolute;left:0;color:#1D9E75;font-weight:700;}
+.ddc-steps .steps-title{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.ddc-steps ol{padding-left:16px;}
+.ddc-steps ol li{font-size:12px;color:#444;padding:2px 0;line-height:1.5;}
+.ddc-day-total{font-size:11px;color:#0F6E56;font-weight:600;margin-top:4px;}
+.ddc-swap-btn{font-size:11px;color:#0F6E56;background:#E1F5EE;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;margin-top:6px;}
+
+/* WEEK NAV */
+.ddc-wknav{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:1rem;}
+.ddc-wkbtn{flex-shrink:0;padding:5px 13px;font-size:12px;border:1px solid #dde5dd;border-radius:20px;background:#fff;color:#666;cursor:pointer;font-family:inherit;}
+.ddc-wkbtn.on{background:#0F6E56;color:#fff;border-color:#0F6E56;}
+
+/* RECIPE CARDS */
+.ddc-rgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ddc-rc{background:#fff;border:1.5px solid #e8ede8;border-radius:12px;overflow:hidden;}
+.ddc-rc-top{padding:12px 12px 10px;}
+.ddc-rc .rt{font-size:11px;background:#E1F5EE;color:#0F6E56;padding:3px 8px;border-radius:10px;display:inline-block;margin-bottom:6px;font-weight:500;}
+.ddc-rc .rn{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:3px;}
+.ddc-rc .ri{font-size:12px;color:#888;}
+.ddc-rc .rv{font-size:11px;color:#1D9E75;margin-top:4px;line-height:1.4;font-style:italic;}
+.ddc-recipe-body{padding:0 12px 12px;border-top:1px solid #f0f0f0;margin-top:10px;padding-top:10px;}
+.ddc-recipe-body .ing-title,.ddc-recipe-body .steps-title{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;margin-top:10px;}
+.ddc-recipe-body ul{list-style:none;padding:0;}
+.ddc-recipe-body ul li{font-size:12px;color:#444;padding:2px 0 2px 14px;position:relative;}
+.ddc-recipe-body ul li::before{content:'·';position:absolute;left:0;color:#1D9E75;font-weight:700;}
+.ddc-recipe-body ol{padding-left:16px;}
+.ddc-recipe-body ol li{font-size:12px;color:#444;padding:2px 0;line-height:1.5;}
+.ddc-rc-expand{width:100%;padding:9px;background:#0F6E56;color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.ddc-rc-expand.open{background:#085041;}
+
+/* CHAT */
+.ddc-chatrow{display:flex;gap:8px;margin-top:.85rem;}
+.ddc-chatrow input{flex:1;font-size:14px;padding:9px 11px;border:1px solid #dde5dd;border-radius:8px;background:#fafcfa;color:#1a1a1a;outline:none;font-family:inherit;}
+.ddc-askbtn{width:auto;padding:9px 16px;margin-top:0;font-size:13px;}
+.ddc-qb{background:#f5f7f5;border-radius:8px;padding:8px 11px;font-size:13px;margin-bottom:7px;}
+.ddc-ab{border-left:2px solid #1D9E75;padding-left:10px;font-size:13px;color:#333;margin-bottom:10px;line-height:1.65;}
+.ddc-chat-hint{font-size:12px;color:#888;background:#fafcfa;border:1px solid #e8ede8;border-radius:8px;padding:8px 11px;margin-bottom:.75rem;line-height:1.5;}
+
+.ddc-hidden{display:none!important;}
+@media(max-width:480px){.ddc-r2,.ddc-r3{grid-template-columns:1fr;}.ddc-rgrid{grid-template-columns:1fr;}}
+/* PASSWORD GATE */
+#ddc-gate{position:fixed;inset:0;background:#0F6E56;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;}
+#ddc-gate-box{background:#fff;border-radius:20px;padding:2.5rem 2rem;max-width:360px;width:100%;text-align:center;}
+#ddc-gate-box .g-logo{font-size:11px;letter-spacing:.14em;color:#1D9E75;text-transform:uppercase;margin-bottom:12px;}
+#ddc-gate-box h2{font-size:22px;font-weight:700;color:#0F6E56;margin-bottom:6px;}
+#ddc-gate-box p{font-size:13px;color:#777;margin-bottom:1.5rem;}
+#ddc-gate-box input{width:100%;font-size:16px;padding:11px 14px;border:1.5px solid #dde5dd;border-radius:10px;outline:none;font-family:inherit;text-align:center;letter-spacing:.1em;margin-bottom:.75rem;}
+#ddc-gate-box input:focus{border-color:#0F6E56;}
+#ddc-gate-err{font-size:12px;color:#a32d2d;min-height:18px;margin-bottom:.5rem;}
+#ddc-gate-btn{width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;}
+#ddc-gate-btn:active{background:#085041;}
+
+@media print{.ddc-hdr,.ddc-hero,.ddc-mgrid,.ddc-btn,.ddc-wknav,.ddc-chatrow,#ddc-chat-hist,.ddc-dlbanner,.ddc-refbtn,.ddc-div,.ddc-note,#ddc-recipes,#ddc-chat,.ddc-swap-btn,.ddc-rc-expand{display:none!important;}.ddc-card{border:none;padding:0;}.ddc-mpmeal{border:none;background:none;}}
+</style>
+</head>
+<body>
+<!-- PASSWORD GATE -->
+<div id="ddc-gate">
+  <div id="ddc-gate-box">
+    <div class="g-logo">Double Digit Coaching · The Harmony Method</div>
+    <h2>Welcome 👋</h2>
+    <p>Enter your access password to open your nutrition calculator.</p>
+    <input type="password" id="ddc-gate-input" placeholder="Password" autocomplete="current-password">
+    <div id="ddc-gate-err"></div>
+    <button id="ddc-gate-btn" type="button">Enter →</button>
+  </div>
+</div>
+
+<div id="ddc-app">
+
+  <div class="ddc-hdr">
+    <div class="lo">Double Digit Coaching · The Harmony Method</div>
+    <h1>Your personalised calorie &amp; recipe plan</h1>
+    <p>Fill in your details — we'll calculate your calories and build your plan</p>
+  </div>
+
+  <!-- FORM -->
+  <div id="ddc-form">
+    <div class="ddc-card">
+      <h2>About you</h2>
+      <p class="sub">Used to calculate your daily calorie target</p>
+      <div class="ddc-r2">
+        <div class="ddc-field"><label>First name</label><input type="text" id="ddc-fname" placeholder="e.g. Sarah"></div>
+        <div class="ddc-field"><label>Last name</label><input type="text" id="ddc-lname" placeholder="e.g. Thompson"></div>
+      </div>
+      <div class="ddc-r2">
+        <div class="ddc-field"><label>Email</label><input type="email" id="ddc-email" placeholder="your@email.com"></div>
+        <div class="ddc-field"><label>Phone</label><input type="tel" id="ddc-phone" placeholder="+64..."></div>
+      </div>
+      <div class="ddc-r3">
+        <div class="ddc-field"><label>Age</label><input type="number" id="ddc-age" placeholder="38" min="18" max="80"></div>
+        <div class="ddc-field"><label>Height (cm)</label><input type="number" id="ddc-height" placeholder="165"></div>
+        <div class="ddc-field"><label>Weight (kg)</label><input type="number" id="ddc-weight" placeholder="108"></div>
+      </div>
+    </div>
+    <div class="ddc-card">
+      <h2>Your food preferences</h2>
+      <p class="sub">Shapes your meal plan and recipes</p>
+      <div class="ddc-r2">
+        <div class="ddc-field"><label>Meals per day</label>
+          <select id="ddc-meals">
+            <option value="3">3 meals</option>
+            <option value="4" selected>3 meals + 1 snack</option>
+            <option value="5">3 meals + 2 snacks</option>
+          </select>
+        </div>
+        <div class="ddc-field"><label>Allergies / intolerances</label><input type="text" id="ddc-allergies" placeholder="e.g. gluten — or none"></div>
+      </div>
+      <div class="ddc-field"><label>Foods you don't eat</label><input type="text" id="ddc-dislikes" placeholder="e.g. mushrooms — or none"></div>
+      <div class="ddc-field">
+        <label>Favourite proteins (tap up to 5)</label>
+        <div class="ddc-tags" id="ddc-ptags">
+          <button type="button" class="ddc-tag" data-group="p">Chicken</button><button type="button" class="ddc-tag" data-group="p">Fish</button><button type="button" class="ddc-tag" data-group="p">Eggs</button><button type="button" class="ddc-tag" data-group="p">Steak</button><button type="button" class="ddc-tag" data-group="p">Mince</button><button type="button" class="ddc-tag" data-group="p">Seafood</button><button type="button" class="ddc-tag" data-group="p">Salmon</button><button type="button" class="ddc-tag" data-group="p">Tofu</button><button type="button" class="ddc-tag" data-group="p">Pork</button><button type="button" class="ddc-tag" data-group="p">Turkey</button>
+        </div>
+      </div>
+      <div class="ddc-field">
+        <label>Favourite carbs (tap up to 5)</label>
+        <div class="ddc-tags" id="ddc-ctags">
+          <button type="button" class="ddc-tag" data-group="c">Rice</button><button type="button" class="ddc-tag" data-group="c">Bread</button><button type="button" class="ddc-tag" data-group="c">Wraps</button><button type="button" class="ddc-tag" data-group="c">Potato</button><button type="button" class="ddc-tag" data-group="c">Sweet potato</button><button type="button" class="ddc-tag" data-group="c">Pasta</button><button type="button" class="ddc-tag" data-group="c">Oats</button><button type="button" class="ddc-tag" data-group="c">Quinoa</button>
+        </div>
+      </div>
+    </div>
+    <div class="ddc-card">
+      <h2>Your current meals</h2>
+      <p class="sub">Helps us make easy, realistic swaps</p>
+      <div class="ddc-field"><label>3 breakfasts you currently eat</label><textarea id="ddc-bf" placeholder="e.g. toast with vegemite, weet-bix, eggs on toast"></textarea></div>
+      <div class="ddc-field"><label>3 lunches you currently eat</label><textarea id="ddc-lu" placeholder="e.g. sandwich, leftover dinner, sushi"></textarea></div>
+      <div class="ddc-field"><label>3 dinners you currently eat</label><textarea id="ddc-di" placeholder="e.g. chicken stir fry, pasta, roast"></textarea></div>
+      <div class="ddc-field"><label>Snacks you enjoy</label><textarea id="ddc-sn" placeholder="e.g. fruit, yoghurt, crackers" style="min-height:44px;"></textarea></div>
+      <div class="ddc-field"><label>Exercise (if any)</label><input type="text" id="ddc-ex" placeholder="e.g. 2x walks 30min — or none currently"></div>
+    </div>
+    <div id="ddc-err" class="ddc-err"></div>
+    <button type="button" class="ddc-btn" id="ddc-submit-btn">Calculate my calorie target →</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="ddc-results" class="ddc-hidden">
+    <div class="ddc-hero">
+      <div class="lbl">Your daily calorie target</div>
+      <div class="num" id="ddc-calnum">—</div>
+      <div class="unit">calories per day</div>
+      <div class="badge">Weight loss · sedentary baseline</div>
+    </div>
+    <div class="ddc-mgrid">
+      <div class="ddc-mc"><div class="mv" id="ddc-prot">—</div><div class="ml">Protein (g)</div><div class="mb" style="background:#0F6E56;"></div></div>
+      <div class="ddc-mc"><div class="mv" id="ddc-carb">—</div><div class="ml">Carbs (g)</div><div class="mb" style="background:#9FE1CB;"></div></div>
+      <div class="ddc-mc"><div class="mv" id="ddc-fat">—</div><div class="ml">Fats (g)</div><div class="mb" style="background:#5DCAA5;"></div></div>
+    </div>
+    <p class="ddc-note" id="ddc-macronote"></p>
+
+    <div class="ddc-card">
+      <h2>Your personalised nutrition insight</h2>
+      <p class="sub">Based on your details — from your DDC coach</p>
+      <div id="ddc-insight"><div class="ddc-spin-wrap"><div class="ddc-spin"></div>Writing your plan...</div></div>
+    </div>
+
+    <!-- MEAL PLAN -->
+    <div class="ddc-div">7-day viral meal plan</div>
+    <div class="ddc-card">
+      <div class="ddc-toprow">
+        <div><h2>Your 7-day meal plan</h2><p class="sub" id="ddc-mpsub">Viral recipes · with ingredients &amp; amounts</p></div>
+        <button type="button" class="ddc-refbtn ddc-hidden" id="ddc-mprefresh">↻ Regenerate</button>
+      </div>
+      <div id="ddc-mparea"><div class="ddc-spin-wrap"><div class="ddc-spin"></div>Building your viral 7-day meal plan...</div></div>
+      <div id="ddc-mpdl" class="ddc-hidden">
+        <div class="ddc-dlbanner">
+          <div><p>Meal plan ready</p><span>Use browser Print to save as PDF</span></div>
+          <button type="button" class="ddc-dlbtn" id="ddc-printbtn">Save / Print</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY RECIPES -->
+    <div class="ddc-div" id="ddc-recipes">More recipes by week</div>
+    <div class="ddc-card">
+      <div class="ddc-toprow">
+        <div><h2>Explore more recipes</h2><p class="sub" id="ddc-recsub">Full ingredients &amp; steps for each</p></div>
+        <button type="button" class="ddc-refbtn" id="ddc-recrefresh">↻ New recipes</button>
+      </div>
+      <div class="ddc-wknav" id="ddc-wknav"></div>
+      <div id="ddc-recload" class="ddc-spin-wrap"><div class="ddc-spin"></div>Loading recipes...</div>
+      <div id="ddc-recgrid" class="ddc-rgrid ddc-hidden"></div>
+    </div>
+
+    <!-- COACH CHAT -->
+    <div class="ddc-card" id="ddc-chat">
+      <h2>Ask your nutrition coach</h2>
+      <p class="sub">Swap a meal, ask about your plan, or get a new recipe</p>
+      <div class="ddc-chat-hint">💬 Try: <em>"Swap Monday dinner"</em> · <em>"Give me a high protein breakfast"</em> · <em>"I don't like the Tuesday lunch"</em></div>
+      <div id="ddc-chat-hist"></div>
+      <div class="ddc-chatrow">
+        <input type="text" id="ddc-chatinput" placeholder="e.g. Swap Tuesday dinner for something with salmon...">
+        <button type="button" class="ddc-btn ddc-askbtn" id="ddc-askbtn">Ask ↗</button>
+      </div>
+    </div>
+
+    <button type="button" class="ddc-btn out" id="ddc-backbtn">← Edit my details</button>
+  </div>
+</div>
+
+<script>
+// PASSWORD GATE
+(function(){
+  var HASH = '5f4b2c3a8e1d7f9b0c6e4a2d8f3b1e7c'; // hash of 'ddc'
+  function simpleHash(str){
+    var h=0;
+    for(var i=0;i<str.length;i++){h=((h<<5)-h)+str.charCodeAt(i);h=h&h;}
+    return Math.abs(h).toString(16).padStart(8,'0');
+  }
+  var PASS_HASH = simpleHash('ddc'); // precomputed check
+  function unlock(){
+    var gate=document.getElementById('ddc-gate');
+    gate.style.transition='opacity .4s';
+    gate.style.opacity='0';
+    setTimeout(function(){gate.style.display='none';},400);
+    sessionStorage.setItem('ddc-auth','1');
+  }
+  function check(){
+    var val=document.getElementById('ddc-gate-input').value;
+    if(simpleHash(val)===simpleHash('ddc')){
+      unlock();
+    }else{
+      var err=document.getElementById('ddc-gate-err');
+      err.textContent='Incorrect password. Please try again.';
+      document.getElementById('ddc-gate-input').value='';
+      document.getElementById('ddc-gate-input').focus();
+    }
+  }
+  if(sessionStorage.getItem('ddc-auth')==='1'){
+    document.addEventListener('DOMContentLoaded',function(){
+      var gate=document.getElementById('ddc-gate');
+      if(gate)gate.style.display='none';
+    });
+  } else {
+    document.addEventListener('DOMContentLoaded',function(){
+      document.getElementById('ddc-gate-btn').addEventListener('click',check);
+      document.getElementById('ddc-gate-input').addEventListener('keydown',function(e){
+        if(e.key==='Enter'){check();}
+      });
+      document.getElementById('ddc-gate-input').focus();
+    });
+  }
+})();
+
+// DDC Nutrition Calculator
+var DDC = {};
+
+DDC.KEY = 'REPLACE_WITH_YOUR_API_KEY';
+DDC.S = { cals:0, prot:0, carbs:0, fats:0, week:1, prots:[], carbp:[], name:'', wt:0, currentPlan:[] };
+
+DDC.el = function(id){ return document.getElementById(id); };
+DDC.val = function(id){ var e=DDC.el(id); return e&&e.value&&e.value.trim()!==''?e.value.trim():'none'; };
+DDC.show = function(id){ var e=DDC.el(id); if(e)e.classList.remove('ddc-hidden'); };
+DDC.hide = function(id){ var e=DDC.el(id); if(e)e.classList.add('ddc-hidden'); };
+DDC.esc = function(s){ return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):''; };
+
+// TAGS
+DDC.initTags = function(containerId, max){};
+DDC.getTags = function(id){ return Array.from(DDC.el(id).querySelectorAll('.ddc-tag.on')).map(function(t){return t.textContent.trim();}); };
+
+// Tag toggle -- attached to document so GHL cannot block it
+DDC.initTagDelegation = function(){
+  function toggleTag(target){
+    var group = target.getAttribute('data-group');
+    if(!group) return;
+    var containerId = group === 'p' ? 'ddc-ptags' : 'ddc-ctags';
+    var container = DDC.el(containerId);
+    if(!container) return;
+    var max = 5;
+    var selected = container.querySelectorAll('.ddc-tag.on');
+    if(target.classList.contains('on')){
+      target.classList.remove('on');
+    } else if(selected.length < max){
+      target.classList.add('on');
+    }
+  }
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if(t && t.getAttribute && t.getAttribute('data-group')){
+      toggleTag(t);
+    }
+  });
+  document.addEventListener('touchend', function(e){
+    var t = e.target;
+    if(t && t.getAttribute && t.getAttribute('data-group')){
+      e.preventDefault();
+      toggleTag(t);
+    }
+  }, {passive: false});
+};
+
+// API
+DDC.claude = async function(prompt, maxTok){
+  var r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':DDC.KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTok||1000,messages:[{role:'user',content:prompt}]})
+  });
+  if(!r.ok)throw new Error(r.status);
+  var d=await r.json();
+  return(d.content&&d.content[0]&&d.content[0].text)||'';
+};
+DDC.parseJSON = function(txt){
+  txt=txt.replace(/```json|```/g,'').trim();
+  var s=txt.indexOf('['),e=txt.lastIndexOf(']');
+  if(s===-1||e===-1)throw new Error('no array');
+  return JSON.parse(txt.slice(s,e+1));
+};
+
+// RENDER MEAL PLAN
+DDC.renderPlan = function(plan){
+  var html='';
+  plan.forEach(function(d,di){
+    html+='<div class="ddc-mpday"><h4>'+DDC.esc(d.day)+'</h4>';
+    var tot=0;
+    d.meals.forEach(function(m,mi){
+      tot+=(m.cals||0);
+      html+='<div class="ddc-mpmeal">';
+      html+='<div class="mt">'+DDC.esc(m.label)+'</div>';
+      html+='<div class="mn">'+(m.emoji?DDC.esc(m.emoji)+' ':'')+DDC.esc(m.name)+'</div>';
+      html+='<div class="mc">~'+m.cals+' cal &middot; '+m.protein+'g protein</div>';
+      if(m.viral)html+='<div class="viral"> '+DDC.esc(m.viral)+'</div>';
+      if(m.ingredients&&m.ingredients.length){
+        html+='<div class="ddc-ingreds"><div class="ing-title">Ingredients</div><ul>';
+        m.ingredients.forEach(function(ing){html+='<li>'+DDC.esc(ing)+'</li>';});
+        html+='</ul></div>';
+      }
+      if(m.steps&&m.steps.length){
+        html+='<div class="ddc-steps"><div class="steps-title">How to make it</div><ol>';
+        m.steps.forEach(function(st){html+='<li>'+DDC.esc(st)+'</li>';});
+        html+='</ol></div>';
+      }
+      html+='<button type="button" class="ddc-swap-btn ddc-swap-meal" data-day="'+di+'" data-meal="'+mi+'">Swap Swap this meal</button>';
+      html+='</div>';
+    });
+    html+='<div class="ddc-day-total">Daily total: ~'+tot+' cal</div></div>';
+  });
+  return html;
+};
+
+// BIND DYNAMIC BUTTONS via delegation on a stable parent
+DDC.bindDynamic = function(){
+  // Use event delegation on ddc-app for all dynamic buttons
+  var app=DDC.el('ddc-app');
+  if(app._ddcBound)return;
+  app._ddcBound=true;
+  function handle(e){
+    var t=e.target;
+    // Walk up to find a button
+    while(t&&t!==app){
+      if(t.tagName==='BUTTON'){
+        var cls=t.className||'';
+        if(cls.indexOf('ddc-swap-meal')!==-1){
+          e.preventDefault();e.stopPropagation();
+          var di=t.getAttribute('data-day');
+          var mi=t.getAttribute('data-meal');
+          var day=DDC.S.currentPlan[di]?DDC.S.currentPlan[di].day:'this day';
+          var meal=DDC.S.currentPlan[di]&&DDC.S.currentPlan[di].meals[mi]?DDC.S.currentPlan[di].meals[mi].label:'this meal';
+          DDC.el('ddc-chatinput').value='Swap '+day+' '+meal+' for something different';
+          DDC.el('ddc-chatinput').focus();
+          DDC.el('ddc-chat').scrollIntoView({behavior:'smooth'});
+          return;
+        }
+        if(t.id==='mp-retry'){e.preventDefault();e.stopPropagation();DDC.genMealPlan();return;}
+        if(t.id==='rec-retry'){e.preventDefault();e.stopPropagation();DDC.loadRecipes();return;}
+        if(cls.indexOf('ddc-rc-expand')!==-1){
+          e.preventDefault();e.stopPropagation();
+          var target=document.getElementById(t.getAttribute('data-target'));
+          if(!target)return;
+          if(target.classList.contains('ddc-hidden')){
+            target.classList.remove('ddc-hidden');t.textContent='Hide Hide';t.classList.add('open');
+          }else{
+            target.classList.add('ddc-hidden');t.innerHTML='Show ingredients &amp; steps Show';t.classList.remove('open');
+          }
+          return;
+        }
+      }
+      t=t.parentElement;
+    }
+  }
+  app.addEventListener('click',handle,true);
+  app.addEventListener('touchend',function(e){
+    // only fire if not a scroll
+    handle(e);
+  },true);
+};
+
+// SUBMIT
+DDC.submitForm = function(){
+  var fname=DDC.val('ddc-fname'),age=+DDC.el('ddc-age').value,ht=+DDC.el('ddc-height').value,wt=+DDC.el('ddc-weight').value;
+  if(fname==='none'||!fname||!age||!ht||!wt){DDC.el('ddc-err').textContent='Please fill in your name, age, height and weight.';return;}
+  DDC.el('ddc-err').textContent='';
+  var bmr=(10*wt)+(6.25*ht)-(5*age)-161;
+  var target=Math.max(Math.round(bmr*1.2-500),1200);
+  DDC.S.cals=target;DDC.S.name=fname;DDC.S.wt=wt;
+  DDC.S.prot=Math.round(wt*1.6);DDC.S.fats=Math.round(target*0.25/9);
+  DDC.S.carbs=Math.max(Math.round((target-DDC.S.prot*4-DDC.S.fats*9)/4),0);
+  DDC.S.prots=DDC.getTags('ddc-ptags');DDC.S.carbp=DDC.getTags('ddc-ctags');
+  DDC.el('ddc-calnum').textContent=target.toLocaleString();
+  DDC.el('ddc-prot').textContent=DDC.S.prot+'g';DDC.el('ddc-carb').textContent=DDC.S.carbs+'g';DDC.el('ddc-fat').textContent=DDC.S.fats+'g';
+  DDC.el('ddc-macronote').textContent='Macros: '+DDC.S.prot+'g protein (1.6g/kg) &middot; '+DDC.S.fats+'g fats &middot; '+DDC.S.carbs+'g carbs. Adjust with your coach.';
+  DDC.hide('ddc-form');DDC.show('ddc-results');window.scrollTo(0,0);
+  DDC.buildWeeks();DDC.genInsight();DDC.genMealPlan();DDC.loadRecipes();
+};
+
+// INSIGHT
+DDC.genInsight = async function(){
+  var area=DDC.el('ddc-insight');
+  var pr=DDC.S.prots.length?DDC.S.prots.join(', '):'varied';
+  var prompt='You are a warm DDC nutrition coach using The Harmony Method, helping women get under 100kg. Client: '+DDC.S.name+', weight '+DDC.S.wt+'kg, target '+DDC.S.cals+' cal, protein '+DDC.S.prot+'g, carbs '+DDC.S.carbs+'g, fats '+DDC.S.fats+'g. Allergies: '+DDC.val('ddc-allergies')+'. Dislikes: '+DDC.val('ddc-dislikes')+'. Proteins: '+pr+'. Current breakfasts: '+DDC.val('ddc-bf')+'. Lunches: '+DDC.val('ddc-lu')+'. Dinners: '+DDC.val('ddc-di')+'.
+Write 3 short warm paragraphs to '+DDC.S.name+': (1) what this calorie target means, (2) 2 easy swaps from her current meals, (3) one Harmony Method mindset note. Under 180 words. No bullets.';
+  try{
+    var txt=await DDC.claude(prompt,600);
+    area.innerHTML=txt.split('
+').filter(function(p){return p.trim();}).map(function(p){return '<p>'+DDC.esc(p)+'</p>';}).join('');
+    area.className='ddc-prose';
+  }catch(e){
+    area.innerHTML='<p>'+DDC.esc(DDC.S.name)+', your target of <strong>'+DDC.S.cals+' calories</strong> puts you in a steady deficit -- the right amount to lose weight without feeling deprived. Small consistent changes are what get you under 100kg.</p>';
+    area.className='ddc-prose';
+  }
+};
+
+// MEAL PLAN
+DDC.genMealPlan = async function(){
+  var area=DDC.el('ddc-mparea');
+  DDC.hide('ddc-mpdl');DDC.hide('ddc-mprefresh');
+  area.innerHTML='<div class="ddc-spin-wrap"><div class="ddc-spin"></div>Building your viral 7-day meal plan...</div>';
+  var mn=parseInt(DDC.el('ddc-meals').value)||4;
+  var ml=mn===3?'Breakfast, Lunch, Dinner':mn===4?'Breakfast, Lunch, Dinner, Snack':'Breakfast, Lunch, Dinner, Snack 1, Snack 2';
+  var pr=DDC.S.prots.length?DDC.S.prots.join(', '):'chicken, fish, eggs';
+  var cp=DDC.S.carbp.length?DDC.S.carbp.join(', '):'rice, potato, sweet potato';
+  var prompt='Create a 7-day viral meal plan for '+DDC.S.name+'. Target: '+DDC.S.cals+' cal/day. Macros: '+DDC.S.prot+'g protein, '+DDC.S.carbs+'g carbs, '+DDC.S.fats+'g fats. Meals per day: '+ml+'. Preferred proteins: '+pr+'. Preferred carbs: '+cp+'. Allergies: '+DDC.val('ddc-allergies')+'. Dislikes: '+DDC.val('ddc-dislikes')+'.
+
+Use trendy viral recipes (TikTok/Instagram). Include at least 2 fakeaway-style meals. For EVERY meal include exact ingredient amounts and 3-5 cooking steps.
+
+JSON array only, no markdown:
+[{"day":"Monday","meals":[{"label":"Breakfast","name":"recipe name","emoji":"emoji","cals":number,"protein":number,"viral":"why it went viral in 1 sentence","ingredients":["150g chicken breast","1 cup rice"],"steps":["Step 1","Step 2"]},...]},...]
+
+7 days. Calories per day must sum close to '+DDC.S.cals+'.';
+  try{
+    var txt=await DDC.claude(prompt,4000);
+    var plan=DDC.parseJSON(txt);
+    DDC.S.currentPlan=plan;
+    area.innerHTML=DDC.renderPlan(plan);
+    area.className='ddc-prose';
+    DDC.el('ddc-mpsub').textContent=DDC.S.cals+' cal &middot; '+mn+' meals/day &middot; viral recipes';
+    DDC.show('ddc-mpdl');DDC.show('ddc-mprefresh');
+  }catch(e){
+    area.innerHTML='<p style="font-size:13px;color:#888;padding:.5rem;">Could not load meal plan. <button type="button" class="ddc-swap-btn" id="mp-retry">Try again</button></p>';
+  }
+};
+
+// WEEKS
+DDC.buildWeeks = function(){
+  var nav=DDC.el('ddc-wknav');nav.innerHTML='';
+  for(var i=1;i<=8;i++){(function(w){
+    var b=document.createElement('button');
+    b.type='button';b.className='ddc-wkbtn'+(w===1?' on':'');b.textContent='Week '+w;
+    b.addEventListener('click',function(e){
+      e.preventDefault();
+      DDC.S.week=w;document.querySelectorAll('.ddc-wkbtn').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');DDC.loadRecipes();
+    });
+    nav.appendChild(b);
+  })(i);}
+};
+
+// RECIPES
+DDC.loadRecipes = async function(){
+  var grid=DDC.el('ddc-recgrid'),loading=DDC.el('ddc-recload');
+  grid.classList.add('ddc-hidden');loading.style.display='flex';
+  var pr=DDC.S.prots.length?DDC.S.prots.join(', '):'chicken, fish, eggs';
+  var cp=DDC.S.carbp.length?DDC.S.carbp.join(', '):'rice, potato, sweet potato';
+  var prompt='Generate 6 viral trending recipes for Week '+DDC.S.week+' for '+DDC.S.name+'. Target: '+DDC.S.cals+' cal/day. Proteins: '+pr+'. Carbs: '+cp+'. Allergies: '+DDC.val('ddc-allergies')+'. Dislikes: '+DDC.val('ddc-dislikes')+'. Mix of Breakfast/Lunch/Dinner/Snack. Include 1 fakeaway. Make Week '+DDC.S.week+' feel fresh.
+
+For EVERY recipe include exact ingredient amounts and simple steps.
+
+JSON array only, no markdown:
+[{"name":"...","tag":"Breakfast|Lunch|Dinner|Snack","emoji":"emoji","cals":number,"protein":number,"viral":"why it went viral","ingredients":["200g chicken","1 tbsp olive oil"],"steps":["Step 1","Step 2","Step 3"]}]';
+  try{
+    var txt=await DDC.claude(prompt,2500);
+    var recs=DDC.parseJSON(txt);
+    grid.innerHTML=recs.map(function(r,i){
+      var uid='rec-'+i+'-'+Date.now();
+      return '<div class="ddc-rc">'+
+        '<div class="ddc-rc-top">'+
+        '<span class="rt">'+DDC.esc(r.tag)+'</span>'+
+        '<div class="rn">'+(r.emoji?DDC.esc(r.emoji)+' ':'')+DDC.esc(r.name)+'</div>'+
+        '<div class="ri">~'+r.cals+' cal &middot; '+r.protein+'g protein</div>'+
+        '<div class="rv"> '+DDC.esc(r.viral)+'</div>'+
+        '</div>'+
+        '<button type="button" class="ddc-rc-expand" data-target="'+uid+'">Show ingredients &amp; steps Show</button>'+
+        '<div class="ddc-recipe-body ddc-hidden" id="'+uid+'">'+
+        '<div class="ing-title">Ingredients</div>'+
+        '<ul>'+(r.ingredients||[]).map(function(ing){return '<li>'+DDC.esc(ing)+'</li>';}).join('')+'</ul>'+
+        '<div class="steps-title">How to make it</div>'+
+        '<ol>'+(r.steps||[]).map(function(s){return '<li>'+DDC.esc(s)+'</li>';}).join('')+'</ol>'+
+        '</div>'+
+        '</div>';
+    }).join('');
+    grid.classList.remove('ddc-hidden');
+    DDC.el('ddc-recsub').textContent='Week '+DDC.S.week+' &middot; tap any recipe for full instructions';
+  }catch(e){
+    grid.innerHTML='<div style="grid-column:1/-1;font-size:13px;color:#888;padding:.5rem;">Could not load recipes. <button type="button" class="ddc-swap-btn" id="rec-retry">Try again</button></div>';
+    grid.classList.remove('ddc-hidden');
+  }
+  loading.style.display='none';
+};
+
+// CHAT
+DDC.ask = async function(){
+  var inp=DDC.el('ddc-chatinput'),q=inp.value.trim();
+  if(!q)return;inp.value='';
+  var hist=DDC.el('ddc-chat-hist');
+  hist.innerHTML+='<div class="ddc-qb"><strong>You:</strong> '+DDC.esc(q)+'</div>';
+  var lid='cl'+Date.now();
+  hist.innerHTML+='<div id="'+lid+'" class="ddc-spin-wrap"><div class="ddc-spin"></div>Thinking...</div>';
+  DDC.el(lid).scrollIntoView({behavior:'smooth'});
+  var isSwap=/swap|replace|change|different|don.t like|dont like/i.test(q);
+  var planJson=JSON.stringify(DDC.S.currentPlan.map(function(d){return{day:d.day,meals:d.meals.map(function(m){return{label:m.label,name:m.name};});};}));
+  var ctx='You are a smart DDC nutrition coach. Client '+DDC.S.name+', '+DDC.S.cals+' cal/day, '+DDC.S.prot+'g protein. Allergies: '+DDC.val('ddc-allergies')+'. Dislikes: '+DDC.val('ddc-dislikes')+'. Proteins: '+(DDC.S.prots.join(', ')||'varied')+'. Carbs: '+(DDC.S.carbp.join(', ')||'varied')+'.
+Current meal plan: '+planJson;
+  var prompt;
+  if(isSwap){
+    prompt=ctx+'
+
+Client wants to swap: "'+q+'"
+
+Identify the day and meal. Provide a replacement viral recipe fitting the calorie slot. Respond with: 1) warm 1-sentence acknowledgement, 2) this exact JSON block:
+```json
+{"day":"Monday","label":"Dinner","name":"New Meal","emoji":"emoji","cals":number,"protein":number,"viral":"why viral","ingredients":["amount ingredient"],"steps":["step1","step2"]}
+```
+3) brief encouraging note.';
+  }else{
+    prompt=ctx+'
+
+Client asks: "'+q+'"
+
+Reply warmly in 2-4 sentences. If asked for a recipe give full ingredients with amounts and numbered steps.';
+  }
+  try{
+    var txt=await DDC.claude(prompt,1000);
+    if(isSwap&&txt.indexOf('```json')!==-1){
+      var js=txt.indexOf('```json')+7,je=txt.indexOf('```',js);
+      try{
+        var newMeal=JSON.parse(txt.slice(js,je).trim());
+        var updated=false;
+        DDC.S.currentPlan.forEach(function(d){
+          if(d.day.toLowerCase()===newMeal.day.toLowerCase()){
+            d.meals.forEach(function(m,mi){
+              if(m.label.toLowerCase()===newMeal.label.toLowerCase()){d.meals[mi]=newMeal;updated=true;}
+            });
+          }
+        });
+        if(updated){
+          DDC.el('ddc-mparea').innerHTML=DDC.renderPlan(DDC.S.currentPlan);
+          DDC.el('ddc-mparea').className='ddc-prose';
+        }
+        var clean=txt.replace(/```json[\s\S]*?```/,'').trim();
+        DDC.el(lid).outerHTML='<div class="ddc-ab">'+DDC.esc(clean).replace(/
+/g,'<br>')+(updated?'<br><br><em style="color:#0F6E56;font-size:12px;">Updated Meal plan updated above</em>':'')+'</div>';
+      }catch(pe){DDC.el(lid).outerHTML='<div class="ddc-ab">'+DDC.esc(txt).replace(/
+/g,'<br>')+'</div>';}
+    }else{
+      DDC.el(lid).outerHTML='<div class="ddc-ab">'+DDC.esc(txt).replace(/
+/g,'<br>')+'</div>';
+    }
+  }catch(e){
+    DDC.el(lid).outerHTML='<div class="ddc-ab" style="color:#888">Could not connect. Please try again.</div>';
+  }
+};
+
+// INIT -- bind all static buttons
+DDC.init = function(){
+  DDC.initTagDelegation();
+  DDC.bindDynamic();
+
+  var pairs=[
+    ['ddc-submit-btn', function(){ DDC.submitForm(); }],
+    ['ddc-backbtn',    function(){ DDC.hide('ddc-results'); DDC.show('ddc-form'); window.scrollTo(0,0); }],
+    ['ddc-mprefresh',  function(){ DDC.genMealPlan(); }],
+    ['ddc-printbtn',   function(){ window.print(); }],
+    ['ddc-recrefresh', function(){ DDC.loadRecipes(); }],
+    ['ddc-askbtn',     function(){ DDC.ask(); }],
+  ];
+  pairs.forEach(function(p){
+    var btn=DDC.el(p[0]);
+    if(!btn)return;
+    btn.addEventListener('click', p[1]);
+    btn.addEventListener('touchend', function(e){ e.preventDefault(); p[1](); });
+  });
+
+  var chatInput=DDC.el('ddc-chatinput');
+  if(chatInput){ chatInput.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();DDC.ask();}}); }
+};
+
+// Fire init -- multiple triggers to guarantee it runs in any GHL context
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', DDC.init);
+} else {
+  DDC.init();
+}
+window.addEventListener('load', function(){
+  if(!DDC.el('ddc-app')._ddcInited){ DDC.el('ddc-app')._ddcInited=true; DDC.init(); }
+});
+setTimeout(function(){
+  if(!DDC.el('ddc-submit-btn')._ddcBound){
+    DDC.el('ddc-submit-btn')._ddcBound=true;
+    DDC.init();
+  }
+}, 500);
+</script>
+</body>
+</html>
